@@ -76,13 +76,28 @@ namespace CatFactory.EntityFrameworkCore
 
         public static PropertyDefinition GetChildNavigationProperty(this EntityFrameworkCoreProject project, ProjectSelection<EntityFrameworkCoreProjectSettings> projectSelection, ITable table, ForeignKey foreignKey)
         {
-            var propertyType = string.Format("{0}<{1}>", projectSelection.Settings.NavigationPropertyEnumerableType, project.GetEntityName(table));
+            var inverseProperty = foreignKey.GetParentNavigationProperty(table, project);
 
-            return new PropertyDefinition(propertyType, project.GetNavigationPropertyName(table))
+            if (table.PrimaryKey.Key.SequenceEqual(foreignKey.Key))
             {
-                AccessModifier = AccessModifier.Public,
-                IsVirtual = projectSelection.Settings.DeclareNavigationPropertiesAsVirtual
-            };
+                var entityName = project.GetEntityName(table);
+
+                return new PropertyDefinition(entityName, $"{entityName}Fk")
+                {
+                    AccessModifier = AccessModifier.Public,
+                    IsVirtual = projectSelection.Settings.DeclareNavigationPropertiesAsVirtual
+                };
+            }
+            else
+            {
+                var propertyType = string.Format("{0}<{1}>", projectSelection.Settings.NavigationPropertyEnumerableType, project.GetEntityName(table));
+
+                return new PropertyDefinition(propertyType, project.GetNavigationPropertyName(table))
+                {
+                    AccessModifier = AccessModifier.Public,
+                    IsVirtual = projectSelection.Settings.DeclareNavigationPropertiesAsVirtual
+                };
+            }
         }
     }
 }
